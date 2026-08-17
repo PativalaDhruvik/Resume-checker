@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
+// In production (GitHub Pages) → points to deployed Render.com backend
+// In development → Vite proxy handles /api → http://localhost:5000
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const client = axios.create({
   baseURL: API_BASE,

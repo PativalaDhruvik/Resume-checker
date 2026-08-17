@@ -1,0 +1,25 @@
+# render.yaml — Render.com Infrastructure as Code
+# Drop this file in your repo root and use "New Blueprint" on render.com
+
+services:
+  - type: web
+    name: resumai-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false   # Set manually in Render dashboard (contains credentials)
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+      - key: GEMINI_API_KEY
+        sync: false   # Set manually in Render dashboard
