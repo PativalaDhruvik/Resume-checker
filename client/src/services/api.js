@@ -2,10 +2,16 @@ import axios from 'axios';
 
 // In production (GitHub Pages) → points to deployed Render.com backend
 // In development → Vite proxy handles /api → http://localhost:5000
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const DEFAULT_PROD_API = 'https://resumai-api.onrender.com/api';
+const isProductionDomain = typeof window !== 'undefined' && 
+  !window.location.hostname.includes('localhost') && 
+  !window.location.hostname.includes('127.0.0.1');
+
+const API_BASE = import.meta.env.VITE_API_URL || (isProductionDomain ? DEFAULT_PROD_API : '/api');
 
 const client = axios.create({
   baseURL: API_BASE,
+  timeout: 20000, // 20s timeout
   headers: {
     'Content-Type': 'application/json',
   },

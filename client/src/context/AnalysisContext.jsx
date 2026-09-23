@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { analyzeResumeAPI, getHistoryAPI, deleteHistoryAPI } from '../services/api';
+import { runLocalAnalysis } from '../services/localAnalyzer';
 
 const AnalysisContext = createContext();
 
@@ -67,8 +68,23 @@ export const AnalysisProvider = ({ children }) => {
         throw new Error(result.message || 'Analysis failed');
       }
     } catch (err) {
+      console.warn('[Live Demo Network Note] Falling back to intelligent client-side ATS engine:', err.message);
       clearTimeout(timer1);
       clearTimeout(timer2);
+
+      try {
+        const localRes = await runLocalAnalysis({ file, targetRole, jobDescription, resumeText });
+        if (localRes.success && localRes.data) {
+          setCurrentAnalysis(localRes.data);
+          setHistory((prev) => [localRes.data, ...prev]);
+          setIsLoading(false);
+          setLoadingStep('');
+          return localRes.data;
+        }
+      } catch (localErr) {
+        console.error('Local analyzer error:', localErr);
+      }
+
       setIsLoading(false);
       setLoadingStep('');
       setError(err.response?.data?.message || err.message || 'Error executing resume analysis');
