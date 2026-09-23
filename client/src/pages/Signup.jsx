@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, User, Mail, Lock, Briefcase, ArrowRight } from 'lucide-react';
+import { Sparkles, User, Mail, Lock, Briefcase, ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAnalysis } from '../context/AnalysisContext';
 import { Card } from '../components/ui/card';
@@ -15,12 +15,19 @@ export const Signup = () => {
   const [password, setPassword] = useState('');
   const [targetRole, setTargetRole] = useState('Senior Full Stack Developer');
   const [agreedTerms, setAgreedTerms] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (!name || !email || !password) {
       setError('Please complete all required fields.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
       return;
     }
     if (!agreedTerms) {
@@ -28,8 +35,15 @@ export const Signup = () => {
       return;
     }
 
-    signup(name, email, password);
-    setActiveTab('dashboard');
+    setIsSubmitting(true);
+    const res = await signup(name, email, password, targetRole);
+    setIsSubmitting(false);
+
+    if (res.success) {
+      setActiveTab('dashboard');
+    } else {
+      setError(res.message || 'Registration failed.');
+    }
   };
 
   return (
@@ -122,11 +136,26 @@ export const Signup = () => {
             </label>
           </div>
 
-          {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" className="w-full h-12 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25">
-            Create Account & Start Audit ✨
-            <ArrowRight className="w-4 h-4 ml-1.5" />
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" /> Creating Account...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Create Account & Start Audit ✨ <ArrowRight className="w-4 h-4" />
+              </span>
+            )}
           </Button>
         </form>
 

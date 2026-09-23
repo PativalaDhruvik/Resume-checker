@@ -30,7 +30,7 @@ export const analyzeResumeWithGemini = async ({ resumeText, targetRole, jobDescr
   if (apiKey && apiKey.trim().length > 10) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey.trim());
-      const model = genAI.getGenerativeAIModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
       const prompt = `
 You are an expert executive ATS (Applicant Tracking System) Auditor and Senior Career Coach.

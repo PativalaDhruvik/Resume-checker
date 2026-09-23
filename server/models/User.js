@@ -5,11 +5,14 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -17,12 +20,15 @@ const userSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['Free', 'Pro', 'Enterprise'],
-      default: 'Pro',
+      default: 'Free Plan',
+    },
+    creditsRemaining: {
+      type: Number,
+      default: 5,
     },
     scansRemaining: {
       type: Number,
-      default: 50,
+      default: 5,
     },
   },
   {

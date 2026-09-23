@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertOctagon, AlertTriangle, Sparkles, CheckCircle2, ArrowRight, Wand2 } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, Sparkles, CheckCircle2, ArrowRight, Wand2, MessageSquareQuote } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -12,25 +12,25 @@ export const IssueFeed = ({ issues = [] }) => {
     {
       id: 'iss-1',
       severity: 'critical',
-      title: 'No quantitative metrics found in Work Experience section.',
-      description: 'ATS algorithms score resumes 40% higher when quantifiable metrics (percentages, team sizes, revenue numbers) are present.',
-      recommendation: 'Incorporate quantified results like "Reduced API load time by 35%" or "Managed $100k budget".',
+      title: 'Not one of your bullets shows a measurable result',
+      description: '0% of bullets contain a number or percentage metric (recommended target: 50–75%).',
+      recommendation: 'Recruiters scan in 7 seconds — numbers are what stops the scan. Duty descriptions without outcomes read as junior.',
       suggestedFix: 'Rephrased bullet point with metrics: "Architected high-concurrency Node.js REST APIs, reducing response times by 35% across 100k daily active users."',
     },
     {
       id: 'iss-2',
       severity: 'warning',
-      title: 'Multi-column layout or complex tables detected.',
-      description: 'Legacy ATS parsers (Taleo, Workday) may scramble side-by-side columns and misattribute work dates.',
-      recommendation: 'Use a clean, single-column vertical layout with standard H2 section headings.',
+      title: 'Multi-column layout or complex tables detected',
+      description: 'Legacy ATS parsers (Taleo, Workday, Greenhouse) misread side-by-side columns.',
+      recommendation: 'Use a clean, single-column vertical layout with standard section headings (Work Experience, Skills, Education).',
       suggestedFix: 'Reformatted text into linear single-column structure with standard section headers.',
     },
     {
       id: 'iss-3',
       severity: 'warning',
-      title: 'Missing Docker & Cloud Deployment keywords.',
+      title: 'Missing Docker & Cloud Deployment keywords',
       description: 'The job posting heavily emphasizes containerized microservices deployments.',
-      recommendation: 'Add Docker, Kubernetes, or AWS deployment bullet points into your Technical Skills.',
+      recommendation: 'Add Docker, Kubernetes, or AWS deployment bullet points into your Technical Skills & Experience.',
       suggestedFix: 'Added "Docker containerization & CI/CD pipeline automation" to Tech Stack section.',
     },
   ];
@@ -44,19 +44,33 @@ export const IssueFeed = ({ issues = [] }) => {
   };
 
   return (
-    <Card className="flex flex-col justify-between h-full bg-slate-900/80">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+    <Card className="glass-card flex flex-col justify-between h-full p-6 bg-white dark:bg-[#0F1626]/90 shadow-xl border border-slate-200 dark:border-slate-800">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3.5 mb-4">
         <div className="flex items-center gap-2">
-          <AlertOctagon className="w-4 h-4 text-rose-400" />
-          <h3 className="text-sm font-bold tracking-tight text-white">Actionable ATS Audits & Fixes</h3>
+          <div className="p-1.5 rounded-xl bg-rose-500/10 text-rose-500">
+            <AlertOctagon className="w-4.5 h-4.5" />
+          </div>
+          <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">Evidence-Based ATS Audits</h3>
         </div>
-        <Badge variant="critical" className="text-[10px]">
-          {defaultIssues.length - fixedIssueIds.length} Issues Remaining
+        <Badge variant="critical" className="text-[11px] px-3 py-1 font-bold">
+          {defaultIssues.length - fixedIssueIds.length} Issues To Fix
         </Badge>
       </div>
 
+      {/* Resumly 7-Second Recruiter Impression Quote Box */}
+      <div className="p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 mb-4 space-y-2">
+        <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+          <MessageSquareQuote className="w-4 h-4" />
+          What a recruiter thinks in 7 seconds:
+        </div>
+        <p className="text-xs text-slate-700 dark:text-slate-300 italic leading-relaxed">
+          "Solid candidate claim, but bullet points lack quantitative metrics. Experience section needs clearer metrics to read senior-level."
+        </p>
+      </div>
+
       {/* Vertical Issue List */}
-      <div className="flex flex-col gap-3 overflow-y-auto max-h-[320px] pr-1">
+      <div className="flex flex-col gap-3.5 overflow-y-auto max-h-[340px] pr-1">
         {defaultIssues.map((issue) => {
           const isFixed = fixedIssueIds.includes(issue.id);
           const isFixing = activeFixingId === issue.id;
@@ -64,9 +78,9 @@ export const IssueFeed = ({ issues = [] }) => {
           return (
             <div
               key={issue.id}
-              className={`p-4 rounded-xl border transition-all duration-300 ${
+              className={`p-4 rounded-2xl border transition-all duration-300 ${
                 isFixed
-                  ? 'bg-emerald-500/5 border-emerald-500/20 opacity-75'
+                  ? 'bg-emerald-500/5 border-emerald-500/30 opacity-80'
                   : issue.severity === 'critical'
                   ? 'bg-rose-500/5 border-rose-500/30 hover:border-rose-500/50'
                   : 'bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50'
@@ -75,19 +89,19 @@ export const IssueFeed = ({ issues = [] }) => {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2">
                   {issue.severity === 'critical' ? (
-                    <Badge variant="critical" className="flex items-center gap-1 uppercase">
+                    <Badge variant="critical" className="flex items-center gap-1 uppercase text-[10px] font-bold">
                       <AlertOctagon className="w-3 h-3" /> Critical
                     </Badge>
                   ) : (
-                    <Badge variant="warning" className="flex items-center gap-1 uppercase">
+                    <Badge variant="warning" className="flex items-center gap-1 uppercase text-[10px] font-bold">
                       <AlertTriangle className="w-3 h-3" /> Warning
                     </Badge>
                   )}
-                  <h4 className="text-xs font-bold text-white">{issue.title}</h4>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{issue.title}</h4>
                 </div>
 
                 {isFixed ? (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400 shrink-0">
+                  <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
                     <CheckCircle2 className="w-4 h-4" /> Fixed with AI
                   </span>
                 ) : (
@@ -96,7 +110,7 @@ export const IssueFeed = ({ issues = [] }) => {
                     size="sm"
                     disabled={isFixing}
                     onClick={() => handleFixWithAI(issue.id)}
-                    className="h-8 px-3 text-[11px] bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shrink-0 shadow-sm"
+                    className="h-8 px-3 text-[11px] font-bold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shrink-0 shadow-sm"
                   >
                     {isFixing ? (
                       <span className="flex items-center gap-1">
@@ -111,13 +125,13 @@ export const IssueFeed = ({ issues = [] }) => {
                 )}
               </div>
 
-              <p className="text-xs text-slate-300 mb-2 leading-relaxed">{issue.description}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mb-2 leading-relaxed">{issue.description}</p>
 
-              {/* Recommendation Callout Block */}
-              <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2">
-                <ArrowRight className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+              {/* Why This Matters Callout Block */}
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                <ArrowRight className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-indigo-300 font-semibold">Recommendation: </strong>
+                  <strong className="text-indigo-600 dark:text-indigo-400 font-bold">Why it matters: </strong>
                   {isFixed ? issue.suggestedFix : issue.recommendation}
                 </div>
               </div>

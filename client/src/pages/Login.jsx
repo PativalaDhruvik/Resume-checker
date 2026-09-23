@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAnalysis } from '../context/AnalysisContext';
 import { Card } from '../components/ui/card';
@@ -13,22 +13,26 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleDemoAutofill = () => {
-    setEmail('dhruvik@resumai.io');
-    setPassword('demo123456');
-    setError('');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
       setError('Please fill in both email and password.');
       return;
     }
-    login(email, password);
-    setActiveTab('dashboard');
+
+    setIsSubmitting(true);
+    const res = await login(email, password);
+    setIsSubmitting(false);
+
+    if (res.success) {
+      setActiveTab('dashboard');
+    } else {
+      setError(res.message || 'Login failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -43,7 +47,7 @@ export const Login = () => {
           </div>
           <h2 className="text-2xl font-black tracking-tight text-white">Welcome back to ResumAI</h2>
           <p className="text-xs text-slate-400">
-            Login is compulsory to run resume scans, view ATS scores, and access Gemini AI tools.
+            Sign in to access your 5 free AI ATS resume scans and stored reports.
           </p>
         </div>
 
@@ -97,12 +101,25 @@ export const Login = () => {
           </div>
 
           {error && (
-            <p className="text-xs text-rose-400 font-medium">{error}</p>
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+              {error}
+            </div>
           )}
 
-          <Button type="submit" className="w-full h-12 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25">
-            Sign In to Dashboard
-            <ArrowRight className="w-4 h-4 ml-1.5" />
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" /> Authenticating...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Sign In to Dashboard <ArrowRight className="w-4 h-4" />
+              </span>
+            )}
           </Button>
         </form>
 

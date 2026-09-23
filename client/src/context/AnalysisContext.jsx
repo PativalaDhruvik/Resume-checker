@@ -62,7 +62,7 @@ export const AnalysisProvider = ({ children }) => {
         setHistory((prev) => [result.data, ...prev]);
         setIsLoading(false);
         setLoadingStep('');
-        return result.data;
+        return { ...result.data, userCreditsRemaining: result.userCreditsRemaining };
       } else {
         throw new Error(result.message || 'Analysis failed');
       }

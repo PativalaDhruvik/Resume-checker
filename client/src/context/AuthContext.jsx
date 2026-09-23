@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
         })
         .catch(() => {
           localStorage.removeItem('resumai_jwt_token');
+          setUser(null);
         });
     }
   }, []);
@@ -55,23 +56,14 @@ export const AuthProvider = ({ children }) => {
           isAuthenticated: true,
         };
         setUser(loggedUser);
-        return loggedUser;
+        return { success: true, user: loggedUser };
+      } else {
+        return { success: false, message: res.message || 'Login failed.' };
       }
     } catch (err) {
-      console.warn('[Express Auth] Fallback client session:', err.message);
+      const message = err.response?.data?.message || err.message || 'Invalid email or password.';
+      return { success: false, message };
     }
-
-    const fallbackUser = {
-      id: 'usr-' + Date.now(),
-      name: email.split('@')[0] || 'User',
-      email,
-      plan: 'Free Plan',
-      creditsRemaining: 5,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-      isAuthenticated: true,
-    };
-    setUser(fallbackUser);
-    return fallbackUser;
   };
 
   const signup = async (name, email, password, targetRole) => {
@@ -83,51 +75,54 @@ export const AuthProvider = ({ children }) => {
           name: res.data.name,
           email: res.data.email,
           plan: res.data.plan || 'Free Plan',
-          creditsRemaining: res.data.creditsRemaining || 5,
+          creditsRemaining: res.data.creditsRemaining !== undefined ? res.data.creditsRemaining : 5,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.data.email}`,
           isAuthenticated: true,
         };
         setUser(newUser);
-        return newUser;
+        return { success: true, user: newUser };
+      } else {
+        return { success: false, message: res.message || 'Registration failed.' };
       }
     } catch (err) {
-      console.warn('[Express Auth] Fallback signup:', err.message);
+      const message = err.response?.data?.message || err.message || 'Registration failed.';
+      return { success: false, message };
     }
-
-    const fallbackUser = {
-      id: 'usr-' + Date.now(),
-      name,
-      email,
-      plan: 'Free Plan',
-      creditsRemaining: 5,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-      isAuthenticated: true,
-    };
-    setUser(fallbackUser);
-    return fallbackUser;
   };
 
   const activeCredits = user ? user.creditsRemaining : guestCredits;
 
-  const deductCredit = () => {
-    if (activeCredits <= 0) return false;
-
+  const deductCredit = (updatedCreditsFromBackend) => {
     if (user) {
-      setUser((prev) => ({
-        ...prev,
-        creditsRemaining: Math.max(0, prev.creditsRemaining - 1),
-      }));
+      setUser((prev) => {
+        if (!prev) return null;
+        const newCredits = updatedCreditsFromBackend !== undefined && updatedCreditsFromBackend !== null
+          ? updatedCreditsFromBackend
+          : Math.max(0, prev.creditsRemaining - 1);
+        return { ...prev, creditsRemaining: newCredits };
+      });
     } else {
       setGuestCredits((prev) => Math.max(0, prev - 1));
     }
-    return true;
   };
 
   const upgradePlan = async (planName, newCredits) => {
     try {
-      await upgradePlanAPI({ planName, newCredits });
+      const res = await upgradePlanAPI({ planName, newCredits });
+      if (res.success && res.data) {
+        if (user) {
+          setUser((prev) => ({
+            ...prev,
+            plan: res.data.plan || planName,
+            creditsRemaining: res.data.creditsRemaining !== undefined ? res.data.creditsRemaining : (prev.creditsRemaining + newCredits),
+          }));
+        } else {
+          setGuestCredits((prev) => prev + newCredits);
+        }
+        return { success: true };
+      }
     } catch (err) {
-      console.warn('[Express Auth] Upgrade plan API call note:', err.message);
+      console.warn('[Express Auth] Upgrade plan API note:', err.message);
     }
 
     if (user) {
@@ -139,6 +134,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setGuestCredits((prev) => prev + newCredits);
     }
+    return { success: true };
   };
 
   const logout = () => {

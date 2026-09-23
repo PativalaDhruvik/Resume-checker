@@ -7,11 +7,11 @@ import { useAuth } from '../context/AuthContext';
 import { useAnalysis } from '../context/AnalysisContext';
 
 export const ATSQuickTips = () => {
-  const { user } = useAuth();
+  const { user, activeCredits } = useAuth();
   const { setActiveTab } = useAnalysis();
 
-  const creditsLeft = user ? user.creditsRemaining : 0;
-  const isOutOfCredits = user && creditsLeft <= 0;
+  const creditsLeft = activeCredits;
+  const isOutOfCredits = creditsLeft <= 0;
 
   const tips = [
     {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Copy, Check, Sparkles, ArrowRight, TrendingUp } from 'lucide-react';
+import { Zap, Copy, Check, Sparkles, TrendingUp } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -13,17 +13,17 @@ export const BulletDiff = ({ bulletDiffs = [] }) => {
       id: 'diff-1',
       section: 'Work Experience',
       original: 'Developed Java backend REST APIs for internal client application.',
-      aiImproved: 'Architected high-throughput REST APIs using Java Spring Boot, reducing API response times by 35% for 100k+ daily users.',
-      impactScoreIncrease: '+35% Impact',
-      improvementsMade: ['Added 35% latency reduction metric', 'Used strong action verb "Architected"', 'Specified tech stack (Spring Boot)'],
+      aiImproved: 'Architected high-throughput REST APIs using Java Spring Boot, reducing API response times by 35% across 100k+ daily active users.',
+      impactScoreIncrease: '+35% Impact Gain',
+      improvementsMade: ['Added 35% latency reduction metric', 'Action verb "Architected"', 'Specified technology stack'],
     },
     {
       id: 'diff-2',
       section: 'Projects',
       original: 'Built user interface with React and updated state components.',
-      aiImproved: 'Engineered dynamic React 18 dashboard components with Tailwind CSS glassmorphism, boosting user session time by 28%.',
-      impactScoreIncrease: '+28% Impact',
-      improvementsMade: ['Added engagement metric', 'Specified React 18 & glassmorphism stack'],
+      aiImproved: 'Engineered dynamic React 18 dashboard components with Tailwind CSS glassmorphism, boosting user session duration by 28%.',
+      impactScoreIncrease: '+28% Impact Gain',
+      improvementsMade: ['Added 28% engagement metric', 'Specified React 18 & Glassmorphism stack'],
     },
   ];
 
@@ -36,102 +36,88 @@ export const BulletDiff = ({ bulletDiffs = [] }) => {
   };
 
   return (
-    <Card className="flex flex-col justify-between h-full bg-slate-900/90 glow-border">
+    <Card className="glass-card flex flex-col justify-between h-full p-6 bg-white dark:bg-[#0F1626]/90 shadow-xl border border-slate-200 dark:border-slate-800">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3.5 mb-4">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-          <h3 className="text-sm font-bold tracking-tight text-white">Live Bullet Point AI Optimizer</h3>
+          <div className="p-1.5 rounded-xl bg-amber-500/10 text-amber-500">
+            <Zap className="w-4.5 h-4.5 fill-amber-500" />
+          </div>
+          <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">Sample Line Rewrites (Free AI Optimizations)</h3>
         </div>
 
-        {/* Diff Tabs Selector */}
+        {/* Snippet Selector */}
         <div className="flex items-center gap-1.5">
           {defaultDiffs.map((diff, idx) => (
             <button
               key={diff.id}
               onClick={() => setActiveIndex(idx)}
-              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all ${
+              className={`px-3 py-1 text-xs font-bold rounded-xl transition-all ${
                 activeIndex === idx
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 hover:text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Snippet #{idx + 1}
+              Bullet #{idx + 1}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Side-by-Side Diff Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left: Original Bullet */}
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Original Bullet ({currentDiff.section})
-              </span>
-              <span className="text-[10px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
-                Low ATS Score
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 italic leading-relaxed">
-              "{currentDiff.original}"
-            </p>
+      {/* Resumly BEFORE vs AFTER Diff Layout */}
+      <div className="space-y-4">
+        {/* BEFORE Row */}
+        <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-500/20 text-rose-600 dark:text-rose-300 uppercase tracking-wider">
+              BEFORE
+            </span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{currentDiff.section}</span>
           </div>
-          <div className="mt-4 pt-2 border-t border-slate-900 text-[10px] text-slate-500">
-            Lacks metric quantification & high-impact verbs.
-          </div>
+          <p className="text-xs text-rose-700 dark:text-rose-300 line-through leading-relaxed">
+            "{currentDiff.original}"
+          </p>
         </div>
 
-        {/* Right: AI Improved Bullet */}
-        <div className="p-4 rounded-xl bg-indigo-950/30 border border-indigo-500/40 flex flex-col justify-between shadow-lg shadow-indigo-500/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">
-                  AI Enhanced Version
-                </span>
-              </div>
-              <Badge variant="emerald" className="flex items-center gap-1 text-[10px]">
-                <TrendingUp className="w-3 h-3" /> {currentDiff.impactScoreIncrease}
-              </Badge>
-            </div>
-
-            <p className="text-xs font-medium text-white leading-relaxed">
-              "{currentDiff.aiImproved}"
-            </p>
-
-            {/* Enhancements Made */}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {currentDiff.improvementsMade?.map((imp, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold">
-                  ✓ {imp}
-                </span>
-              ))}
-            </div>
+        {/* AFTER Row */}
+        <div className="p-4 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/30 space-y-3 relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-500" /> AFTER (AI ATS ENHANCED)
+            </span>
+            <Badge variant="emerald" className="flex items-center gap-1 text-[10px] font-bold">
+              <TrendingUp className="w-3 h-3" /> {currentDiff.impactScoreIncrease}
+            </Badge>
           </div>
 
-          {/* 1-Click Copy Snippet */}
-          <div className="mt-4 pt-3 border-t border-indigo-500/20 flex items-center justify-end">
+          <p className="text-xs font-bold text-slate-900 dark:text-white leading-relaxed">
+            "{currentDiff.aiImproved}"
+          </p>
+
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {currentDiff.improvementsMade?.map((imp, i) => (
+              <span key={i} className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
+                ✓ {imp}
+              </span>
+            ))}
+          </div>
+
+          <div className="pt-2 flex justify-end border-t border-emerald-500/20">
             <Button
               variant="default"
               size="sm"
               onClick={() => handleCopySnippet(currentDiff.aiImproved, currentDiff.id)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold gap-1.5 shadow-sm"
             >
               {copiedId === currentDiff.id ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-300" />
+                  <Check className="w-3.5 h-3.5 text-white" />
                   Copied Snippet!
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  Copy Snippet
+                  Copy Rewritten Line
                 </>
               )}
             </Button>

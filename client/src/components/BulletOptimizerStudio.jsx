@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Sparkles, Copy, Check, RefreshCw } from 'lucide-react';
+import { Zap, Sparkles, Copy, Check, RefreshCw, TrendingUp } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';

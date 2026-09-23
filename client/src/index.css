@@ -4,39 +4,69 @@
 
 @layer base {
   :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --card-bg: rgba(30, 41, 59, 0.7);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
+    --bg-primary: #090D16;
+    --bg-secondary: #0F172A;
+    --bg-card: #0F1626;
+    --card-bg: rgba(15, 22, 38, 0.85);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --input-bg: #070B14;
   }
 
   .light {
-    --bg-primary: #f8fafc;
-    --bg-secondary: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.85);
-    --border-color: rgba(0, 0, 0, 0.08);
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --border-color: #E2E8F0;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --input-bg: #F1F5F9;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Glassmorphism card effect */
-.glass-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
+/* Background Texture for Light and Dark Modes */
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* Custom glowing borders */
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark .glass-card {
+  box-shadow: 0px 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Glowing Border Effect */
 .glow-border {
   position: relative;
   border: 1px solid rgba(99, 102, 241, 0.35);
-  box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.12);
+}
+
+.light .glow-border {
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px 0 rgba(99, 102, 241, 0.1);
 }
 
 /* Custom Scrollbar */
@@ -50,11 +80,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.45);
+  background: rgba(148, 163, 184, 0.5);
 }
-

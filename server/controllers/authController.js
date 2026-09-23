@@ -16,66 +16,88 @@ const generateToken = (userId, email) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, targetRole } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide name, email, and password.' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
+    }
 
-    let newUser = null;
+    const normalizedEmail = email.toLowerCase().trim();
 
     if (getDBStatus()) {
-      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
-        return res.status(400).json({ success: false, message: 'User with this email already exists.' });
+        return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
       }
 
-      newUser = await User.create({
-        name,
-        email: email.toLowerCase(),
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newUser = await User.create({
+        name: name.trim(),
+        email: normalizedEmail,
         password: hashedPassword,
         plan: 'Free Plan',
+        creditsRemaining: 5,
         scansRemaining: 5,
       });
-    }
 
-    if (!newUser) {
-      // In-memory user fallback
-      const existingMem = inMemoryUsers.find((u) => u.email === email.toLowerCase());
+      const token = generateToken(newUser._id, newUser.email);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Account created successfully.',
+        data: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          plan: newUser.plan,
+          creditsRemaining: newUser.creditsRemaining,
+          token,
+        },
+      });
+    } else {
+      // In-memory fallback mode
+      const existingMem = inMemoryUsers.find((u) => u.email === normalizedEmail);
       if (existingMem) {
-        return res.status(400).json({ success: false, message: 'User with this email already exists.' });
+        return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
       }
 
-      newUser = {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newUser = {
         _id: 'usr-' + Date.now(),
-        name,
-        email: email.toLowerCase(),
+        name: name.trim(),
+        email: normalizedEmail,
+        password: hashedPassword,
         plan: 'Free Plan',
+        creditsRemaining: 5,
         scansRemaining: 5,
-        targetRole: targetRole || 'Senior Full Stack Developer',
       };
-      inMemoryUsers.push({ ...newUser, password: hashedPassword });
+      inMemoryUsers.push(newUser);
+
+      const token = generateToken(newUser._id, newUser.email);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Account created successfully (Memory Mode).',
+        data: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          plan: newUser.plan,
+          creditsRemaining: newUser.creditsRemaining,
+          token,
+        },
+      });
     }
-
-    const token = generateToken(newUser._id, newUser.email);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Account created successfully with Express.js API.',
-      data: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        plan: newUser.plan,
-        creditsRemaining: newUser.scansRemaining || 5,
-        token,
-      },
-    });
   } catch (error) {
-    console.error('[Express Auth Register Error]:', error);
+    console.error('[Auth Register Error]:', error);
     return res.status(500).json({ success: false, message: error.message || 'Server error during registration.' });
   }
 };
@@ -85,47 +107,44 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide email and password.' });
+      return res.status(400).json({ success: false, message: 'Please enter both email and password.' });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
     let userObj = null;
 
     if (getDBStatus()) {
-      userObj = await User.findOne({ email: email.toLowerCase() });
+      userObj = await User.findOne({ email: normalizedEmail });
     } else {
-      userObj = inMemoryUsers.find((u) => u.email === email.toLowerCase());
+      userObj = inMemoryUsers.find((u) => u.email === normalizedEmail);
     }
 
     if (!userObj) {
-      // Create user automatically for seamless onboarding
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      userObj = {
-        _id: 'usr-' + Date.now(),
-        name: email.split('@')[0],
-        email: email.toLowerCase(),
-        plan: 'Free Plan',
-        scansRemaining: 5,
-      };
-      inMemoryUsers.push({ ...userObj, password: hashedPassword });
+      return res.status(400).json({ success: false, message: 'No account found with this email. Please sign up first.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, userObj.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
     }
 
     const token = generateToken(userObj._id, userObj.email);
+    const credits = userObj.creditsRemaining !== undefined ? userObj.creditsRemaining : (userObj.scansRemaining ?? 5);
 
     return res.status(200).json({
       success: true,
-      message: 'Logged in successfully via Express.js API.',
+      message: 'Logged in successfully.',
       data: {
         id: userObj._id,
         name: userObj.name,
         email: userObj.email,
         plan: userObj.plan || 'Free Plan',
-        creditsRemaining: userObj.scansRemaining !== undefined ? userObj.scansRemaining : 5,
+        creditsRemaining: credits,
         token,
       },
     });
   } catch (error) {
-    console.error('[Express Auth Login Error]:', error);
+    console.error('[Auth Login Error]:', error);
     return res.status(500).json({ success: false, message: 'Server error during login.' });
   }
 };
@@ -145,14 +164,16 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User profile not found.' });
     }
 
+    const credits = userObj.creditsRemaining !== undefined ? userObj.creditsRemaining : (userObj.scansRemaining ?? 5);
+
     return res.status(200).json({
       success: true,
       data: {
         id: userObj._id,
         name: userObj.name,
         email: userObj.email,
-        plan: userObj.plan,
-        creditsRemaining: userObj.scansRemaining,
+        plan: userObj.plan || 'Free Plan',
+        creditsRemaining: credits,
       },
     });
   } catch (error) {
@@ -163,32 +184,44 @@ export const getMe = async (req, res) => {
 export const upgradeUserPlan = async (req, res) => {
   try {
     const { planName, newCredits } = req.body;
-    const userId = req.user?.id || 'guest-user';
+    const userId = req.user?.id;
+
+    if (!userId || userId === 'guest-user') {
+      return res.status(401).json({ success: false, message: 'Authentication required to upgrade plan.' });
+    }
+
+    let updatedCredits = 5;
 
     if (getDBStatus()) {
       const userObj = await User.findById(userId);
       if (userObj) {
         userObj.plan = planName;
-        userObj.scansRemaining = (userObj.scansRemaining || 0) + (newCredits || 15);
+        userObj.creditsRemaining = (userObj.creditsRemaining || 0) + (newCredits || 15);
+        userObj.scansRemaining = userObj.creditsRemaining;
         await userObj.save();
+        updatedCredits = userObj.creditsRemaining;
       }
     } else {
       const memUser = inMemoryUsers.find((u) => u._id === userId);
       if (memUser) {
         memUser.plan = planName;
-        memUser.scansRemaining = (memUser.scansRemaining || 0) + (newCredits || 15);
+        memUser.creditsRemaining = (memUser.creditsRemaining || 0) + (newCredits || 15);
+        memUser.scansRemaining = memUser.creditsRemaining;
+        updatedCredits = memUser.creditsRemaining;
       }
     }
 
     return res.status(200).json({
       success: true,
-      message: `Plan successfully upgraded to ${planName} via Express API.`,
+      message: `Plan successfully upgraded to ${planName}.`,
       data: {
         plan: planName,
-        creditsAdded: newCredits,
+        creditsRemaining: updatedCredits,
       },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to upgrade plan.' });
   }
 };
+
+export const getInMemoryUsers = () => inMemoryUsers;
