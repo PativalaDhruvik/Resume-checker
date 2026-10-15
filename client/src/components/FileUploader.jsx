@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle2, X, AlertCircle, ShieldCheck, Zap } from 'lucide-react';
 
-export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setResumeText }) => {
+export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setResumeText, hasError = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState('');
   const [activeInputMode, setActiveInputMode] = useState('upload'); // 'upload' | 'text'
@@ -17,7 +17,8 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
     }
 
     const validTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!validTypes.includes(file.mimetype) && !file.name.match(/\.(pdf|txt|docx)$/i)) {
+    const fileType = file.type || file.mimetype || '';
+    if (!validTypes.includes(fileType) && !file.name.match(/\.(pdf|txt|docx)$/i)) {
       setFileError('Invalid file type. Please upload a PDF, DOCX, or TXT document.');
       return;
     }
@@ -53,6 +54,7 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
         </label>
         <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-300 dark:border-slate-800">
           <button
+            id="tab-upload-mode"
             type="button"
             onClick={() => setActiveInputMode('upload')}
             className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
@@ -64,6 +66,7 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
             File Upload
           </button>
           <button
+            id="tab-text-mode"
             type="button"
             onClick={() => setActiveInputMode('text')}
             className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
@@ -79,6 +82,7 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
 
       {activeInputMode === 'upload' ? (
         <div
+          id="resume-dropzone"
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -88,10 +92,13 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
               ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]'
               : selectedFile
               ? 'border-emerald-500 bg-emerald-500/5'
+              : hasError
+              ? 'border-rose-500/80 bg-rose-500/5 ring-2 ring-rose-500/20'
               : 'border-slate-300 dark:border-slate-800 hover:border-indigo-500/70 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900/80'
           }`}
         >
           <input
+            id="resume-file-input"
             ref={fileInputRef}
             type="file"
             accept=".pdf,.docx,.txt"
@@ -121,7 +128,7 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
             </div>
           ) : (
             <>
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-indigo-500/10">
+              <div className={`w-14 h-14 rounded-2xl ${hasError ? 'bg-rose-500/10 border-rose-500/30 text-rose-500' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500'} border flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md`}>
                 <UploadCloud className="w-7 h-7 animate-pulse" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
@@ -140,11 +147,14 @@ export const FileUploader = ({ selectedFile, setSelectedFile, resumeText, setRes
         </div>
       ) : (
         <textarea
+          id="resume-text-input"
           rows={6}
           value={resumeText}
           onChange={(e) => setResumeText(e.target.value)}
           placeholder="Paste your raw resume text here to analyze ATS score..."
-          className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none shadow-sm"
+          className={`w-full rounded-2xl border bg-white dark:bg-slate-950 p-4 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none shadow-sm ${
+            hasError && !resumeText?.trim() ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-300 dark:border-slate-800'
+          }`}
         />
       )}
 

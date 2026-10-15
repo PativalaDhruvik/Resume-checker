@@ -3,108 +3,173 @@
  * Guarantees zero downtime if backend server is sleeping or unreachable
  */
 export const runLocalAnalysis = async ({ file, targetRole = 'Senior Full Stack Developer', jobDescription = '', resumeText = '' }) => {
-  let textToScan = resumeText || '';
+  let textToScan = resumeText ? resumeText.trim() : '';
 
   if (file && !textToScan) {
     try {
       textToScan = await file.text();
     } catch (e) {
-      textToScan = `Experienced ${targetRole} skilled in software engineering, API architecture, and database optimization.`;
+      return {
+        success: false,
+        message: 'Could not extract text from the uploaded file. Please paste your resume text directly.',
+      };
     }
   }
 
   if (!textToScan || textToScan.trim().length === 0) {
-    textToScan = `Experienced ${targetRole} skilled in building scalable web applications and technical leadership.`;
+    return {
+      success: false,
+      message: 'Please upload a resume file (PDF, DOCX, TXT) or paste resume text before checking the ATS score.',
+    };
   }
 
   const lowerText = textToScan.toLowerCase();
+  const lowerTarget = targetRole.toLowerCase();
 
-  const techKeywords = [
-    'react', 'node.js', 'mongodb', 'express', 'javascript', 'typescript', 'python',
-    'rest api', 'graphql', 'docker', 'aws', 'git', 'ci/cd', 'sql', 'microservices',
-    'tailwind', 'unit testing', 'agile', 'system design', 'redis', 'java', 'kubernetes'
+  const allKeywords = [
+    { kw: 'react', cat: 'Frontend', roles: ['frontend', 'full stack', 'web', 'javascript'] },
+    { kw: 'vue', cat: 'Frontend', roles: ['frontend', 'full stack', 'web'] },
+    { kw: 'angular', cat: 'Frontend', roles: ['frontend', 'full stack'] },
+    { kw: 'typescript', cat: 'Languages', roles: ['frontend', 'backend', 'full stack', 'software'] },
+    { kw: 'javascript', cat: 'Languages', roles: ['frontend', 'full stack', 'web', 'software'] },
+    { kw: 'node.js', cat: 'Backend', roles: ['backend', 'full stack', 'software'] },
+    { kw: 'express', cat: 'Backend', roles: ['backend', 'full stack'] },
+    { kw: 'python', cat: 'Backend / Data', roles: ['backend', 'data', 'software', 'ai', 'ml'] },
+    { kw: 'java', cat: 'Backend', roles: ['backend', 'software', 'enterprise'] },
+    { kw: 'rest api', cat: 'Architecture', roles: ['backend', 'full stack', 'frontend', 'software'] },
+    { kw: 'rest apis', cat: 'Architecture', roles: ['backend', 'full stack', 'frontend', 'software'] },
+    { kw: 'graphql', cat: 'Architecture', roles: ['backend', 'full stack', 'frontend'] },
+    { kw: 'mongodb', cat: 'Database', roles: ['backend', 'full stack', 'database'] },
+    { kw: 'postgresql', cat: 'Database', roles: ['backend', 'full stack', 'database', 'data'] },
+    { kw: 'sql', cat: 'Database', roles: ['backend', 'full stack', 'database', 'data'] },
+    { kw: 'docker', cat: 'DevOps', roles: ['devops', 'backend', 'full stack', 'software'] },
+    { kw: 'kubernetes', cat: 'DevOps', roles: ['devops', 'backend', 'cloud'] },
+    { kw: 'aws', cat: 'Cloud', roles: ['cloud', 'devops', 'backend', 'full stack'] },
+    { kw: 'git', cat: 'Version Control', roles: ['software', 'frontend', 'backend', 'full stack'] },
+    { kw: 'ci/cd', cat: 'DevOps', roles: ['devops', 'backend', 'full stack', 'software'] },
+    { kw: 'tailwind', cat: 'Frontend', roles: ['frontend', 'full stack', 'web'] },
+    { kw: 'microservices', cat: 'Architecture', roles: ['backend', 'full stack', 'software'] },
+    { kw: 'agile', cat: 'Process', roles: ['software', 'product', 'manager', 'full stack', 'frontend', 'backend'] },
   ];
+
+  const relevantPool = allKeywords.filter(
+    (k) => k.roles.some((r) => lowerTarget.includes(r)) || ['git', 'agile', 'rest api', 'docker'].includes(k.kw)
+  );
 
   const matched = [];
   const missing = [];
+  const poolToUse = relevantPool.length >= 8 ? relevantPool : allKeywords.slice(0, 16);
 
-  techKeywords.forEach((kw) => {
+  poolToUse.forEach(({ kw, cat }) => {
     if (lowerText.includes(kw)) {
       matched.push({
         keyword: kw.toUpperCase(),
-        category: getCategoryForKeyword(kw),
+        category: cat,
         marketDemand: Math.floor(Math.random() * 25 + 20) + '%',
       });
     } else {
       missing.push({
         keyword: kw.toUpperCase(),
-        importance: ['react', 'node.js', 'mongodb', 'rest api', 'docker', 'typescript'].includes(kw) ? 'High' : 'Medium',
+        importance: ['react', 'node.js', 'typescript', 'docker', 'python', 'aws', 'rest api'].includes(kw) ? 'High' : 'Medium',
         recommendation: `Include ${kw.toUpperCase()} in your skills or experience section to match ${targetRole} requirements.`,
         marketDemand: Math.floor(Math.random() * 20 + 18) + '%',
       });
     }
   });
 
-  const hasNumbers = /\d+([%kKmM]|\s*percent|\s*users|\s*ms)/i.test(textToScan);
-  const formattingScore = lowerText.includes('experience') || lowerText.includes('education') ? 92 : 78;
-  const keywordScore = Math.min(95, Math.max(55, Math.round((matched.length / 8) * 85)));
-  const impactScore = hasNumbers ? 88 : 62;
-  const clarityScore = textToScan.length > 300 ? 84 : 70;
+  // Dynamic Structure & Formatting Assessment
+  const sectionKeywords = ['experience', 'work history', 'employment', 'education', 'degree', 'university', 'skills', 'projects', 'summary'];
+  let sectionsFound = 0;
+  sectionKeywords.forEach((sec) => {
+    if (lowerText.includes(sec)) sectionsFound += 1;
+  });
 
-  const atsScore = Math.round((formattingScore * 0.25) + (keywordScore * 0.35) + (impactScore * 0.25) + (clarityScore * 0.15));
+  const hasContactInfo = /(@|\.com|\+?\d{10,}|github|linkedin)/i.test(textToScan);
+  const formattingScore = Math.min(96, Math.max(52, 60 + (sectionsFound * 5) + (hasContactInfo ? 8 : 0)));
 
-  let statusBadge = 'Great ATS Compatibility';
+  // Dynamic Keyword Score
+  const matchRatio = matched.length / Math.max(matched.length + missing.length, 1);
+  const keywordScore = Math.min(96, Math.max(45, Math.round(40 + (matchRatio * 56))));
+
+  // Dynamic Quantitative Metrics Assessment (exclude bare 4-digit years)
+  const metricMatches = (textToScan.match(/\b(?!19\d\d|20\d\d)\d+(\.\d+)?(%|k|K|m|M|x|ms|\+|k\+)?\b/g) || []).filter(n => n.trim().length > 0).length;
+  const impactScore = Math.min(95, Math.max(48, 52 + Math.min(metricMatches * 6, 42)));
+
+  // Dynamic Clarity Assessment
+  const actionVerbs = ['developed', 'engineered', 'architected', 'led', 'designed', 'built', 'improved', 'created', 'managed', 'reduced', 'increased', 'optimized', 'delivered', 'automated'];
+  let actionVerbsFound = 0;
+  actionVerbs.forEach((v) => {
+    if (lowerText.includes(v)) actionVerbsFound += 1;
+  });
+
+  const wordCount = textToScan.trim().split(/\s+/).length;
+  const lengthBonus = wordCount >= 100 && wordCount <= 900 ? 10 : wordCount < 50 ? -15 : 0;
+  const clarityScore = Math.min(95, Math.max(48, 54 + (actionVerbsFound * 4) + lengthBonus));
+
+  // Weighted ATS Score
+  const atsScore = Math.round(
+    (formattingScore * 0.25) +
+    (keywordScore * 0.35) +
+    (impactScore * 0.25) +
+    (clarityScore * 0.15)
+  );
+
+  let statusBadge = 'Strong ATS Compatibility';
   if (atsScore >= 85) statusBadge = 'Excellent ATS Match';
-  else if (atsScore < 70) statusBadge = 'Needs Improvement';
+  else if (atsScore >= 75) statusBadge = 'Great ATS Compatibility';
+  else if (atsScore >= 65) statusBadge = 'Good Potential - Minor Gaps';
+  else statusBadge = 'Needs Optimization';
 
   const actionableIssues = [];
-  if (!hasNumbers) {
+  if (metricMatches < 3) {
     actionableIssues.push({
       id: 'iss-metrics',
       severity: 'critical',
-      title: 'Not one of your bullets shows a measurable result',
-      description: '0% of bullets contain a number or percentage metric (recommended target: 50–75%).',
-      recommendation: 'Recruiters scan in 7 seconds — numbers stop the scan. Duty descriptions without outcomes read as junior.',
-      suggestedFix: 'Rephrased bullet point with metrics: "Architected high-concurrency REST APIs, reducing response times by 35% across 100k daily active users."',
+      title: 'Limited quantitative metrics found in Work Experience',
+      description: 'ATS parsers and recruiters prioritize resumes with measurable results (%, latency, active users).',
+      recommendation: 'Incorporate quantifiable outcomes like "Improved API latency by 35%" or "Managed team of 6 engineers".',
+      suggestedFix: 'Quantify your responsibilities and achievements in bullet points with real metrics.',
     });
   }
 
-  if (missing.length > 3) {
+  if (missing.length > 2) {
     actionableIssues.push({
       id: 'iss-keywords',
       severity: 'warning',
-      title: `Missing core technical keywords for ${targetRole}`,
-      description: `Your resume is missing ${missing.length} key skills commonly scanned for ${targetRole} roles.`,
-      recommendation: `Add highlighted missing keywords (${missing.slice(0, 3).map(m => m.keyword).join(', ')}) into experience bullet points.`,
-      suggestedFix: 'Incorporate missing skills directly into your work experience section.',
+      title: `Missing target role skills for ${targetRole}`,
+      description: `Your resume is missing skills (${missing.slice(0, 3).map((m) => m.keyword).join(', ')}) commonly scanned for this role.`,
+      recommendation: `Add highlighted missing keywords into your experience bullet points or skills summary.`,
+      suggestedFix: `Incorporate ${missing.slice(0, 2).map((m) => m.keyword).join(' and ')} directly into your project descriptions.`,
     });
   }
 
-  actionableIssues.push({
-    id: 'iss-layout',
-    severity: 'warning',
-    title: 'Check standard section headings',
-    description: 'Ensure traditional section titles like "Work Experience", "Education", and "Skills" are clear.',
-    recommendation: 'Use clean standard h2 headers so ATS resume parsers categorize your sections with 100% accuracy.',
-    suggestedFix: 'Rename custom headers to standard ATS compliant naming.',
-  });
+  if (sectionsFound < 3) {
+    actionableIssues.push({
+      id: 'iss-layout',
+      severity: 'warning',
+      title: 'Missing traditional resume section headers',
+      description: 'Ensure standard headers like "Work Experience", "Education", and "Technical Skills" are clear.',
+      recommendation: 'Use clean standard headers so ATS resume parsers categorize your sections with 100% accuracy.',
+      suggestedFix: 'Rename custom headers to standard ATS compliant naming conventions.',
+    });
+  }
 
   const bulletDiffs = [
     {
       id: 'diff-1',
       section: 'Work Experience',
-      original: 'Worked on backend REST APIs and database queries for internal web portal.',
-      aiImproved: `Engineered high-concurrency Node.js REST APIs & MongoDB indexes, reducing database query response times by 40% across 250k monthly active requests.`,
-      impactScoreIncrease: '+38% Impact Gain',
-      improvementsMade: ['Added 40% latency metric', 'Highlighted Node.js & MongoDB stack', 'Action verb "Engineered"'],
+      original: 'Worked on backend REST APIs and database queries for web application.',
+      aiImproved: `Architected high-throughput ${matched[0]?.keyword || 'Node.js'} REST APIs and optimized database indexes, reducing response latency by 35% across 150k monthly requests.`,
+      impactScoreIncrease: '+35% Impact',
+      improvementsMade: ['Added 35% latency reduction metric', 'Highlighted architecture verb "Architected"', 'Specified volume scale'],
     },
     {
       id: 'diff-2',
-      section: 'Projects & Highlights',
-      original: 'Created frontend UI using React and updated component styling.',
-      aiImproved: `Architected responsive, accessible React 18 dashboard with Tailwind CSS glassmorphic components, boosting user session duration by 28%.`,
-      impactScoreIncrease: '+28% Impact Gain',
-      improvementsMade: ['Added engagement metric', 'Specified React 18 & Glassmorphism stack'],
+      section: 'Frontend / Projects',
+      original: 'Built user interface components and resolved bugs.',
+      aiImproved: `Engineered responsive, accessible UI modules using ${matched[1]?.keyword || 'React'}, boosting user interaction rates by 26% and cutting customer bug reports in half.`,
+      impactScoreIncrease: '+28% Impact',
+      improvementsMade: ['Added quantifiable engagement gain', 'Emphasized accessibility standards', 'Used strong action verb "Engineered"'],
     },
   ];
 
@@ -125,11 +190,11 @@ export const runLocalAnalysis = async ({ file, targetRole = 'Senior Full Stack D
         impactMetrics: impactScore,
         clarity: clarityScore,
       },
-      matchedKeywords: matched.slice(0, 8),
+      matchedKeywords: matched.slice(0, 10),
       missingKeywords: missing.slice(0, 6),
       actionableIssues,
       bulletDiffs,
-      summaryFeedback: `Resume scanned against ${targetRole}. Score of ${atsScore}/100 indicates ${statusBadge.toLowerCase()}.`,
+      summaryFeedback: `Resume scanned against ${targetRole}. Deterministic ATS score of ${atsScore}/100 indicates ${statusBadge.toLowerCase()}.`,
     },
   };
 };

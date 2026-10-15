@@ -23,8 +23,23 @@ export const Dashboard = () => {
 
   const quickRoles = ['Senior Full Stack Developer', 'Frontend Engineer', 'Backend Engineer', 'Data Scientist', 'Product Manager'];
 
+  const handleSelectFile = (file) => {
+    setSelectedFile(file);
+    if (file && error) setError(null);
+  };
+
+  const handleResumeTextChange = (text) => {
+    setResumeText(text);
+    if (text?.trim() && error) setError(null);
+  };
+
   const handleSubmitAnalysis = async (e) => {
     e.preventDefault();
+
+    if (!selectedFile && (!resumeText || resumeText.trim().length === 0)) {
+      setError('Please upload your resume (PDF, DOCX, TXT) or paste your resume text before checking the ATS score.');
+      return;
+    }
 
     if (activeCredits <= 0) {
       if (!user) {
@@ -108,9 +123,10 @@ export const Dashboard = () => {
               {/* Drag & Drop Upload Component */}
               <FileUploader
                 selectedFile={selectedFile}
-                setSelectedFile={setSelectedFile}
+                setSelectedFile={handleSelectFile}
                 resumeText={resumeText}
-                setResumeText={setResumeText}
+                setResumeText={handleResumeTextChange}
+                hasError={Boolean(error && !selectedFile && !resumeText?.trim())}
               />
 
               {/* Target Role Field */}
@@ -165,14 +181,15 @@ export const Dashboard = () => {
               </div>
 
               {error && (
-                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2.5 font-semibold">
+                <div id="analysis-error-banner" className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2.5 font-semibold animate-in fade-in duration-200">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  {error}
+                  <span>{error}</span>
                 </div>
               )}
 
               {/* Submit Button */}
               <Button
+                id="submit-analysis-btn"
                 type="submit"
                 disabled={isLoading}
                 className="w-full h-12 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 transform active:scale-[0.99]"

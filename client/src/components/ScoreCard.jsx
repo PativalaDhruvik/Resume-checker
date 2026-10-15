@@ -34,24 +34,24 @@ export const ScoreCard = ({ score = 84, statusBadge = 'Great ATS Compatibility',
         </div>
       </div>
 
-      {/* Resumly-style Score Improvement Row */}
+      {/* Score Improvement Row */}
       <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 mb-4 flex items-center justify-between text-center shadow-inner">
         <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Current Score</span>
-          <span className={`font-display text-2xl font-black ${scoreColorClass}`}>{score}</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">Today</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Current ATS Score</span>
+          <span className={`font-display text-2xl font-black ${scoreColorClass}`}>{score}%</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase">Current Match</span>
         </div>
 
         <div className="flex flex-col items-center justify-center">
           <div className="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
             <ArrowRight className="w-4 h-4" />
           </div>
-          <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">+28 PTS Potential</span>
+          <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">+{Math.max(5, targetScore - score)}% Potential</span>
         </div>
 
         <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Potential Target</span>
-          <span className="font-display text-2xl font-black text-emerald-500">{targetScore}</span>
+          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Target Potential</span>
+          <span className="font-display text-2xl font-black text-emerald-500">{targetScore}%</span>
           <span className="text-[10px] font-bold text-emerald-500 uppercase">After Optimization</span>
         </div>
       </div>
@@ -91,9 +91,9 @@ export const ScoreCard = ({ score = 84, statusBadge = 'Great ATS Compatibility',
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className={`font-display text-3xl font-black ${scoreColorClass}`}>
-              {score}
+              {score}%
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">/ 100 PTS</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ATS Percentage</span>
           </div>
         </div>
 

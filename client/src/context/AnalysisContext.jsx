@@ -41,6 +41,11 @@ export const AnalysisProvider = ({ children }) => {
   }, []);
 
   const runAnalysis = async ({ file, targetRole, jobDescription, resumeText }) => {
+    if (!file && (!resumeText || resumeText.trim().length === 0)) {
+      setError('Please upload your resume (PDF, DOCX, TXT) or paste resume text before checking the ATS score.');
+      return null;
+    }
+
     setIsLoading(true);
     setError(null);
     setLoadingStep('1. Extracting Resume Text & Structure...');
@@ -68,9 +73,20 @@ export const AnalysisProvider = ({ children }) => {
         throw new Error(result.message || 'Analysis failed');
       }
     } catch (err) {
-      console.warn('[Live Demo Network Note] Falling back to intelligent client-side ATS engine:', err.message);
       clearTimeout(timer1);
       clearTimeout(timer2);
+
+      const errorMessage = err.response?.data?.message || err.message || 'Error executing resume analysis';
+
+      // If it's a 4xx validation or client error (e.g. 400 Bad Request, 403 Forbidden), do not fallback to local analysis
+      if (err.response && err.response.status >= 400 && err.response.status < 500) {
+        setIsLoading(false);
+        setLoadingStep('');
+        setError(errorMessage);
+        return null;
+      }
+
+      console.warn('[Live Demo Network Note] Falling back to intelligent client-side ATS engine:', err.message);
 
       try {
         const localRes = await runLocalAnalysis({ file, targetRole, jobDescription, resumeText });
@@ -80,14 +96,16 @@ export const AnalysisProvider = ({ children }) => {
           setIsLoading(false);
           setLoadingStep('');
           return localRes.data;
+        } else {
+          setError(localRes.message || errorMessage);
         }
       } catch (localErr) {
         console.error('Local analyzer error:', localErr);
+        setError(localErr.message || errorMessage);
       }
 
       setIsLoading(false);
       setLoadingStep('');
-      setError(err.response?.data?.message || err.message || 'Error executing resume analysis');
       return null;
     }
   };

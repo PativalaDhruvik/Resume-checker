@@ -8,7 +8,7 @@ export const CategoryBreakdown = ({ metrics = {} }) => {
     {
       id: 'formatting',
       label: 'Formatting & Layout',
-      score: metrics.formatting || 90,
+      score: metrics.formatting ?? 90,
       icon: Layout,
       color: 'bg-gradient-to-r from-indigo-500 to-violet-500',
       description: 'Single-column structure, standard section headers, font hierarchy.',
@@ -16,7 +16,7 @@ export const CategoryBreakdown = ({ metrics = {} }) => {
     {
       id: 'keywordMatch',
       label: 'Keyword Match Rate',
-      score: metrics.keywordMatch || 78,
+      score: metrics.keywordMatch ?? 78,
       icon: Key,
       color: 'bg-gradient-to-r from-emerald-500 to-teal-400',
       description: 'Skill density overlap against target role requirements.',
@@ -24,7 +24,7 @@ export const CategoryBreakdown = ({ metrics = {} }) => {
     {
       id: 'impactMetrics',
       label: 'Impact & Quantification',
-      score: metrics.impactMetrics || 85,
+      score: metrics.impactMetrics ?? 85,
       icon: BarChart3,
       color: 'bg-gradient-to-r from-violet-500 to-purple-500',
       description: 'Presence of numerical metrics (%, $, scale, team size).',
@@ -32,7 +32,7 @@ export const CategoryBreakdown = ({ metrics = {} }) => {
     {
       id: 'clarity',
       label: 'Clarity & Action Verbs',
-      score: metrics.clarity || 82,
+      score: metrics.clarity ?? 82,
       icon: CheckSquare,
       color: 'bg-gradient-to-r from-amber-500 to-orange-400',
       description: 'Strong action verb density and concise sentence length.',

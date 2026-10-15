@@ -16,6 +16,30 @@ export const analyzeResume = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Target Job Role is required.' });
     }
 
+    let fileName = 'Pasted_Resume.txt';
+    let fileSize = '12 KB';
+    let resumeText = req.body.resumeText ? req.body.resumeText.trim() : '';
+
+    if (!file && !resumeText) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload a resume file (PDF, DOCX, TXT) or paste resume text before checking the ATS score.',
+      });
+    }
+
+    if (file) {
+      fileName = file.originalname;
+      fileSize = `${(file.size / 1024).toFixed(1)} KB`;
+      resumeText = await extractTextFromBuffer(file.buffer, file.mimetype, file.originalname);
+    }
+
+    if (!resumeText || resumeText.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Could not extract readable text from the uploaded file. Please ensure the file contains valid text or paste the content directly.',
+      });
+    }
+
     const userId = req.user?.id || 'guest-user';
     let userRecord = null;
     let userCreditsRemaining = undefined;
@@ -53,20 +77,6 @@ export const analyzeResume = async (req, res) => {
           userCreditsRemaining = userRecord.creditsRemaining;
         }
       }
-    }
-
-    let fileName = 'Pasted_Resume.txt';
-    let fileSize = '12 KB';
-    let resumeText = req.body.resumeText || '';
-
-    if (file) {
-      fileName = file.originalname;
-      fileSize = `${(file.size / 1024).toFixed(1)} KB`;
-      resumeText = await extractTextFromBuffer(file.buffer, file.mimetype, file.originalname);
-    }
-
-    if (!resumeText || resumeText.trim().length === 0) {
-      resumeText = `Experienced ${targetRole} with expertise in building scalable applications, REST APIs, and modern user interfaces.`;
     }
 
     // Run AI / ATS Analysis
